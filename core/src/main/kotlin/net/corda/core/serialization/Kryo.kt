@@ -3,6 +3,7 @@ package net.corda.core.serialization
 import com.esotericsoftware.kryo.*
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
+import com.esotericsoftware.kryo.pool.KryoCallback
 import com.esotericsoftware.kryo.pool.KryoPool
 import com.esotericsoftware.kryo.serializers.JavaSerializer
 import com.esotericsoftware.kryo.util.MapReferenceResolver
@@ -83,7 +84,15 @@ private val KryoHeaderV0_1: OpaqueBytes = OpaqueBytes("corda\u0000\u0000\u0001".
 
 // Some extension functions that make deserialisation convenient and provide auto-casting of the result.
 fun <T : Any> ByteArray.deserialize(kryo: KryoPool = p2PKryo()): T {
-    Input(this).use {
+    return deserializeInput(kryo, Input(this))
+}
+
+fun <T : Any> InputStream.deserialize(kryo: KryoPool = p2PKryo()): T {
+    return deserializeInput(kryo, Input(this))
+}
+
+private fun <T : Any> deserializeInput(kryo: KryoPool, input: Input): T {
+    input.use {
         val header = OpaqueBytes(it.readBytes(8))
         if (header != KryoHeaderV0_1) {
             throw KryoException("Serialized bytes header does not match any known format.")
@@ -136,11 +145,22 @@ fun <T : Any> T.serialize(kryo: KryoPool = p2PKryo(), internalOnly: Boolean = fa
 
 fun <T : Any> T.serialize(kryo: Kryo, internalOnly: Boolean = false): SerializedBytes<T> {
     val stream = ByteArrayOutputStream()
+    serializeToStream(kryo, stream)
+    return SerializedBytes(stream.toByteArray(), internalOnly)
+}
+
+fun <T : Any> T.serializeToStream(kryo: Kryo, stream: OutputStream) {
     Output(stream).use {
         it.writeBytes(KryoHeaderV0_1.bytes)
         kryo.writeClassAndObject(it, this)
     }
-    return SerializedBytes(stream.toByteArray(), internalOnly)
+}
+
+fun main(args: Array<String>) {
+
+    p2PKryo().run {
+        ByteArray(2000).serializeToStream(it, System.out)
+    }
 }
 
 /**
@@ -597,5 +617,27 @@ object LoggerSerializer : Serializer<Logger>() {
 
     override fun read(kryo: Kryo, input: Input, type: Class<Logger>): Logger {
         return LoggerFactory.getLogger(input.readString())
+    }
+}
+
+class KryoPoolWithContext(val baseKryoPool: KryoPool, val contextKey: Any, val context: Any) : KryoPool {
+    override fun <T : Any?> run(callback: KryoCallback<T>): T {
+        val kryo = borrow()
+        try {
+            return callback.execute(kryo)
+        } finally {
+            release(kryo)
+        }
+    }
+
+    override fun borrow(): Kryo {
+        val kryo = baseKryoPool.borrow()
+        require(kryo.context.put(contextKey, context) == null) { "KryoPool already has context" }
+        return kryo
+    }
+
+    override fun release(kryo: Kryo) {
+        requireNotNull(kryo.context.remove(contextKey)) { "Kryo instance lost context while borrowed" }
+        baseKryoPool.release(kryo)
     }
 }

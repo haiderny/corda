@@ -120,14 +120,11 @@ class RPCKryo(observableSerializer: Serializer<Observable<Any>>) : CordaKryo(mak
     }
 
     override fun getRegistration(type: Class<*>): Registration {
-        val annotated = context[RPCKryoQNameKey] != null
-        if (Observable::class.java.isAssignableFrom(type)) {
-            return if (annotated) super.getRegistration(Observable::class.java)
-            else throw IllegalStateException("This RPC was not annotated with @RPCReturnsObservables")
+        if (Observable::class.java != type && Observable::class.java.isAssignableFrom(type)) {
+            return super.getRegistration(Observable::class.java)
         }
-        if (ListenableFuture::class.java.isAssignableFrom(type)) {
-            return if (annotated) super.getRegistration(ListenableFuture::class.java)
-            else throw IllegalStateException("This RPC was not annotated with @RPCReturnsObservables")
+        if (ListenableFuture::class.java != type && ListenableFuture::class.java.isAssignableFrom(type)) {
+            return super.getRegistration(ListenableFuture::class.java)
         }
         if (FlowException::class.java.isAssignableFrom(type))
             return super.getRegistration(FlowException::class.java)
