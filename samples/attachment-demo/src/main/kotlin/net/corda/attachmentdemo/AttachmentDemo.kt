@@ -9,7 +9,7 @@ import net.corda.core.crypto.SecureHash
 import net.corda.core.div
 import net.corda.core.getOrThrow
 import net.corda.core.messaging.CordaRPCOps
-import net.corda.core.messaging.startFlow
+import net.corda.core.messaging.startFlowWithProgress
 import net.corda.core.sizedInputStreamAndHash
 import net.corda.core.utilities.ALICE_KEY
 import net.corda.core.utilities.Emoji
@@ -91,7 +91,7 @@ fun sender(rpc: CordaRPCOps, inputStream: InputStream, hash: SecureHash.SHA256) 
     // Send the transaction to the other recipient
     val stx = ptx.toSignedTransaction()
     println("Sending ${stx.id}")
-    val flowHandle = rpc.startFlow(::FinalityFlow, stx, setOf(otherSide))
+    val flowHandle = rpc.startFlowWithProgress(::FinalityFlow, stx, setOf(otherSide))
     flowHandle.progress.subscribe(::println)
     flowHandle.returnValue.getOrThrow()
 }
