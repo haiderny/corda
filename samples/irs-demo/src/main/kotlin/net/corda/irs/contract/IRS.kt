@@ -11,6 +11,7 @@ import net.corda.irs.flows.FixingFlow
 import net.corda.irs.utilities.suggestInterestRateAnnouncementTimeWindow
 import org.apache.commons.jexl3.JexlBuilder
 import org.apache.commons.jexl3.MapContext
+import org.bouncycastle.asn1.x500.X500Name
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.security.PublicKey
@@ -693,7 +694,7 @@ class InterestRateSwap : Contract {
             val nextFixingOf = nextFixingOf() ?: return null
 
             // This is perhaps not how we should determine the time point in the business day, but instead expect the schedule to detail some of these aspects
-            val instant = suggestInterestRateAnnouncementTimeWindow(index = nextFixingOf.name, source = floatingLeg.indexSource, date = nextFixingOf.forDay).start
+            val instant = suggestInterestRateAnnouncementTimeWindow(index = nextFixingOf.name, source = X500Name(floatingLeg.indexSource), date = nextFixingOf.forDay).start
             return ScheduledActivity(flowLogicRefFactory.create(FixingFlow.FixingRoleDecider::class.java, thisStateRef), instant)
         }
 

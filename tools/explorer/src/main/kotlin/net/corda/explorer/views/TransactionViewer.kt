@@ -22,11 +22,7 @@ import net.corda.client.jfx.utils.map
 import net.corda.client.jfx.utils.sequence
 import net.corda.contracts.asset.Cash
 import net.corda.core.contracts.*
-import net.corda.core.crypto.AbstractParty
-import net.corda.core.crypto.AnonymousParty
-import net.corda.core.crypto.SecureHash
-import net.corda.core.crypto.toBase58String
-import net.corda.core.crypto.toStringShort
+import net.corda.core.crypto.*
 import net.corda.core.node.NodeInfo
 import net.corda.explorer.AmountDiff
 import net.corda.explorer.formatters.AmountFormatter
@@ -108,8 +104,8 @@ class TransactionViewer : CordaView("Transactions") {
                 "Transaction ID" to { tx, s -> "${tx.id}".contains(s, true) },
                 "Input" to { tx, s -> tx.inputs.resolved.any { it.state.data.contract.javaClass.simpleName.contains(s, true) } },
                 "Output" to { tx, s -> tx.outputs.any { it.state.data.contract.javaClass.simpleName.contains(s, true) } },
-                "Input Party" to { tx, s -> tx.inputParties.any { it.any { it.value?.legalIdentity?.name?.contains(s, true) ?: false } } },
-                "Output Party" to { tx, s -> tx.outputParties.any { it.any { it.value?.legalIdentity?.name?.contains(s, true) ?: false } } },
+                "Input Party" to { tx, s -> tx.inputParties.any { it.any { it.value?.legalIdentity?.name?.commonName?.contains(s, true) ?: false } } },
+                "Output Party" to { tx, s -> tx.outputParties.any { it.any { it.value?.legalIdentity?.name?.commonName?.contains(s, true) ?: false } } },
                 "Command Type" to { tx, s -> tx.commandTypes.any { it.simpleName.contains(s, true) } }
         )
         root.top = searchField.root
@@ -225,7 +221,7 @@ class TransactionViewer : CordaView("Transactions") {
                                 val anonymousIssuer: AnonymousParty = data.amount.token.issuer.party
                                 val issuer: AbstractParty = anonymousIssuer.resolveIssuer().value ?: anonymousIssuer
                                 // TODO: Anonymous should probably be italicised or similar
-                                label(issuer.nameOrNull() ?: "Anonymous") {
+                                label(issuer.nameOrNull()?.commonName ?: "Anonymous") {
                                     tooltip(anonymousIssuer.owningKey.toBase58String())
                                 }
                             }

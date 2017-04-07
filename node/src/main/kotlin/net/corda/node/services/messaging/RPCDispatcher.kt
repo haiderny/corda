@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * are handled, this is probably the wrong system.
  */
 // TODO remove the nodeLegalName parameter once the webserver doesn't need special privileges
-abstract class RPCDispatcher(val ops: RPCOps, val userService: RPCUserService, val nodeLegalName: String) {
+abstract class RPCDispatcher(val ops: RPCOps, val userService: RPCUserService, val nodeLegalName: X500Name) {
     // Throw an exception if there are overloaded methods
     private val methodTable = ops.javaClass.declaredMethods.groupBy { it.name }.mapValues { it.value.single() }
 
@@ -184,7 +184,7 @@ abstract class RPCDispatcher(val ops: RPCOps, val userService: RPCUserService, v
         val rpcUser = userService.getUser(validatedUser)
         if (rpcUser != null) {
             return rpcUser
-        } else if (X500Name(validatedUser).commonName == nodeLegalName) {
+        } else if (X500Name(validatedUser) == nodeLegalName) {
             return nodeUser
         } else {
             throw IllegalArgumentException("Validated user '$validatedUser' is not an RPC user nor the NODE user")

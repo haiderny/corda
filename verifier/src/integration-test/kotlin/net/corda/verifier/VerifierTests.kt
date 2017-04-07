@@ -3,6 +3,7 @@ package net.corda.verifier
 import com.google.common.util.concurrent.Futures
 import net.corda.client.mock.generateOrFail
 import net.corda.core.contracts.DOLLARS
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.map
 import net.corda.core.messaging.startFlow
 import net.corda.core.node.services.ServiceInfo

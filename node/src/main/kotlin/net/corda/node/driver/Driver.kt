@@ -9,6 +9,8 @@ import com.typesafe.config.ConfigRenderOptions
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.ThreadBox
 import net.corda.core.crypto.Party
+import net.corda.core.crypto.X509Utilities
+import net.corda.core.crypto.commonName
 import net.corda.core.div
 import net.corda.core.flatMap
 import net.corda.core.map
@@ -30,6 +32,7 @@ import net.corda.nodeapi.config.SSLConfiguration
 import net.corda.nodeapi.config.parseAs
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.bouncycastle.asn1.x500.X500Name
 import org.slf4j.Logger
 import java.io.File
 import java.net.*
@@ -68,7 +71,7 @@ interface DriverDSLExposedInterface {
      * @param rpcUsers List of users who are authorised to use the RPC system. Defaults to empty list.
      * @return The [NodeInfo] of the started up node retrieved from the network map service.
      */
-    fun startNode(providedName: String? = null,
+    fun startNode(providedName: X500Name? = null,
                   advertisedServices: Set<ServiceInfo> = emptySet(),
                   rpcUsers: List<User> = emptyList(),
                   verifierType: VerifierType = VerifierType.InMemory,
@@ -85,7 +88,7 @@ interface DriverDSLExposedInterface {
      * @return The [Party] identity of the distributed notary service, and the [NodeInfo]s of the notaries in the cluster.
      */
     fun startNotaryCluster(
-            notaryName: String,
+            notaryName: X500Name,
             clusterSize: Int = 3,
             type: ServiceType = RaftValidatingNotaryService.type,
             verifierType: VerifierType = VerifierType.InMemory,
@@ -398,7 +401,7 @@ class DriverDSL(
     }
 
     override fun startNode(
-            providedName: String?,
+            providedName: X500Name?,
             advertisedServices: Set<ServiceInfo>,
             rpcUsers: List<User>,
             verifierType: VerifierType,
@@ -408,18 +411,18 @@ class DriverDSL(
         val rpcAddress = portAllocation.nextHostAndPort()
         val webAddress = portAllocation.nextHostAndPort()
         val debugPort = if (isDebug) debugPortAllocation.nextPort() else null
-        val name = providedName ?: "${pickA(name)}-${p2pAddress.port}"
+        val name = providedName ?: X509Utilities.getDevX509Name("${pickA(name)}-${p2pAddress.port}")
 
-        val baseDirectory = driverDirectory / name
+        val baseDirectory = driverDirectory / name.toString()
         val configOverrides = mapOf(
-                "myLegalName" to name,
+                "myLegalName" to name.toString(),
                 "p2pAddress" to p2pAddress.toString(),
                 "rpcAddress" to rpcAddress.toString(),
                 "webAddress" to webAddress.toString(),
                 "extraAdvertisedServiceIds" to advertisedServices.map { it.toString() },
                 "networkMapService" to mapOf(
                         "address" to networkMapAddress.toString(),
-                        "legalName" to networkMapLegalName
+                        "legalName" to networkMapLegalName.toString()
                 ),
                 "useTestClock" to useTestClock,
                 "rpcUsers" to rpcUsers.map {
@@ -451,14 +454,14 @@ class DriverDSL(
     }
 
     override fun startNotaryCluster(
-            notaryName: String,
+            notaryName: X500Name,
             clusterSize: Int,
             type: ServiceType,
             verifierType: VerifierType,
             rpcUsers: List<User>
     ): ListenableFuture<Pair<Party, List<NodeHandle>>> {
-        val nodeNames = (1..clusterSize).map { "${DUMMY_NOTARY.name} $it" }
-        val paths = nodeNames.map { driverDirectory / it }
+        val nodeNames = (1..clusterSize).map { X509Utilities.getDevX509Name("${DUMMY_NOTARY.name} $it") }
+        val paths = nodeNames.map { driverDirectory / it.commonName }
         ServiceIdentityGenerator.generateToDisk(paths, type.id, notaryName)
 
         val serviceInfo = ServiceInfo(type, notaryName)
@@ -517,12 +520,12 @@ class DriverDSL(
     override fun startNetworkMapService() {
         val debugPort = if (isDebug) debugPortAllocation.nextPort() else null
         val apiAddress = portAllocation.nextHostAndPort().toString()
-        val baseDirectory = driverDirectory / networkMapLegalName
+        val baseDirectory = driverDirectory / networkMapLegalName.commonName
         val config = ConfigHelper.loadConfig(
                 baseDirectory = baseDirectory,
                 allowMissingConfig = true,
                 configOverrides = mapOf(
-                        "myLegalName" to networkMapLegalName,
+                        "myLegalName" to networkMapLegalName.toString(),
                         // TODO: remove the webAddress as NMS doesn't need to run a web server. This will cause all
                         //       node port numbers to be shifted, so all demos and docs need to be updated accordingly.
                         "webAddress" to apiAddress,

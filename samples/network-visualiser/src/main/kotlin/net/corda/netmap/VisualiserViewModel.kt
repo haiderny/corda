@@ -7,9 +7,11 @@ import javafx.scene.layout.StackPane
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import javafx.util.Duration
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.utilities.ProgressTracker
 import net.corda.simulation.IRSSimulation
 import net.corda.testing.node.MockNetwork
+import org.bouncycastle.asn1.x500.X500Name
 import java.util.*
 
 class VisualiserViewModel {
@@ -124,7 +126,7 @@ class VisualiserViewModel {
         }
     }
 
-    fun makeNodeWidget(forNode: MockNetwork.MockNode, type: String, label: String = "Bank of Bologna",
+    fun makeNodeWidget(forNode: MockNetwork.MockNode, type: String, label: X500Name = X509Utilities.getDevX509Name("Bank of Bologna"),
                        nodeType: NetworkMapVisualiser.NodeType, index: Int): NodeWidget {
         fun emitRadarPulse(initialRadius: Double, targetRadius: Double, duration: Double): Pair<Circle, Animation> {
             val pulse = Circle(initialRadius).apply {
@@ -154,7 +156,7 @@ class VisualiserViewModel {
         view.root.children += longPulseOuterDot
         view.root.children += innerDot
 
-        val nameLabel = Label(label)
+        val nameLabel = Label(label.toString())
         val nameLabelRect = StackPane(nameLabel).apply {
             styleClass += "node-label"
             alignment = Pos.CENTER_RIGHT

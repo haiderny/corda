@@ -1,5 +1,6 @@
 package net.corda.node.driver
 
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.div
 import net.corda.core.getOrThrow
 import net.corda.core.list
@@ -13,6 +14,7 @@ import net.corda.node.services.api.RegulatorService
 import net.corda.node.services.transactions.SimpleNotaryService
 import net.corda.nodeapi.ArtemisMessagingComponent
 import org.assertj.core.api.Assertions.assertThat
+import net.corda.testing.ALICE
 import org.junit.Test
 import java.nio.file.Paths
 import java.util.concurrent.Executors
@@ -39,7 +41,7 @@ class DriverTests {
     fun `simple node startup and shutdown`() {
         val (notary, regulator) = driver {
             val notary = startNode(DUMMY_NOTARY.name, setOf(ServiceInfo(SimpleNotaryService.type)))
-            val regulator = startNode("Regulator", setOf(ServiceInfo(RegulatorService.type)))
+            val regulator = startNode(X509Utilities.getDevX509Name("Regulator"), setOf(ServiceInfo(RegulatorService.type)))
 
             nodeMustBeUp(notary.getOrThrow().nodeInfo)
             nodeMustBeUp(regulator.getOrThrow().nodeInfo)

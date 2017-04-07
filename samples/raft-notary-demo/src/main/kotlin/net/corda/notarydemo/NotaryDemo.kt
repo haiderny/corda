@@ -4,6 +4,7 @@ import com.google.common.net.HostAndPort
 import com.google.common.util.concurrent.Futures
 import joptsimple.OptionParser
 import net.corda.client.rpc.CordaRPCClient
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.crypto.toStringShort
 import net.corda.core.div
 import net.corda.core.getOrThrow

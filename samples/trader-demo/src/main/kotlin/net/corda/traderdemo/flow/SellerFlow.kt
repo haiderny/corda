@@ -13,6 +13,7 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.utilities.ProgressTracker
 import net.corda.flows.NotaryFlow
 import net.corda.flows.TwoPartyTradeFlow
+import net.corda.testing.BOC
 import java.security.PublicKey
 import java.time.Instant
 import java.util.*
@@ -63,7 +64,7 @@ class SellerFlow(val otherParty: Party,
     fun selfIssueSomeCommercialPaper(ownedBy: PublicKey, notaryNode: NodeInfo): StateAndRef<CommercialPaper.State> {
         // Make a fake company that's issued its own paper.
         val keyPair = generateKeyPair()
-        val party = Party("Bank of London", keyPair.public)
+        val party = Party(BOC.name, keyPair.public)
 
         val issuance: SignedTransaction = run {
             val tx = CommercialPaper().generateIssue(party.ref(1, 2, 3), 1100.DOLLARS `issued by` DUMMY_CASH_ISSUER,

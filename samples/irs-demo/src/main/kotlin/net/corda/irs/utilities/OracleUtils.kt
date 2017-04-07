@@ -1,6 +1,7 @@
 package net.corda.irs.utilities
 
 import net.corda.core.utilities.TimeWindow
+import org.bouncycastle.asn1.x500.X500Name
 import java.time.*
 
 /**
@@ -10,7 +11,7 @@ import java.time.*
  */
 // We at some future point may implement more than just this constant announcement window and thus use the params.
 @Suppress("UNUSED_PARAMETER")
-fun suggestInterestRateAnnouncementTimeWindow(index: String, source: String, date: LocalDate): TimeWindow {
+fun suggestInterestRateAnnouncementTimeWindow(index: String, source: X500Name, date: LocalDate): TimeWindow {
     // TODO: we would ordinarily convert clock to same time zone as the index/source would announce in
     //       and suggest an announcement time for the interest rate
     // Here we apply a blanket announcement time of 11:45 London irrespective of source or index

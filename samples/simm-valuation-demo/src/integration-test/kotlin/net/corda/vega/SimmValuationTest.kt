@@ -2,6 +2,7 @@ package net.corda.vega
 
 import com.google.common.util.concurrent.Futures
 import com.opengamma.strata.product.common.BuySell
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.getOrThrow
 import net.corda.core.node.services.ServiceInfo
 import net.corda.core.utilities.DUMMY_BANK_A
@@ -15,6 +16,7 @@ import net.corda.vega.api.PortfolioApi
 import net.corda.vega.api.PortfolioApiUtils
 import net.corda.vega.api.SwapDataModel
 import net.corda.vega.api.SwapDataView
+import org.bouncycastle.asn1.x500.X500Name
 import org.junit.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -45,7 +47,7 @@ class SimmValuationTest : IntegrationTestCategory {
         }
     }
 
-    private fun getPartyWithName(partyApi: HttpApi, counterparty: String): PortfolioApi.ApiParty =
+    private fun getPartyWithName(partyApi: HttpApi, counterparty: X500Name): PortfolioApi.ApiParty =
             getAvailablePartiesFor(partyApi).counterparties.single { it.text == counterparty }
 
     private fun getAvailablePartiesFor(partyApi: HttpApi): PortfolioApi.AvailableParties {

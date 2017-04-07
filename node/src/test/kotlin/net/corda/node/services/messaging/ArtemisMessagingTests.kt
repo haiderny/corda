@@ -6,6 +6,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.typesafe.config.ConfigFactory.empty
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.crypto.generateKeyPair
 import net.corda.core.messaging.Message
 import net.corda.core.messaging.RPCOps
@@ -73,7 +74,7 @@ class ArtemisMessagingTests {
         userService = RPCUserServiceImpl(emptyList())
         config = TestNodeConfiguration(
                 baseDirectory = baseDirectory,
-                myLegalName = "me",
+                myLegalName = X509Utilities.getDevX509Name("me"),
                 networkMapService = null)
         LogHelper.setLevel(PersistentUniquenessProvider::class)
         val dataSourceAndDatabase = configureDatabase(makeTestDataSourceProperties())

@@ -33,6 +33,7 @@ import net.corda.testing.*
 import net.corda.testing.node.InMemoryMessagingNetwork
 import net.corda.testing.node.MockNetwork
 import org.assertj.core.api.Assertions.assertThat
+import org.bouncycastle.asn1.x500.X500Name
 import org.jetbrains.exposed.sql.Database
 import org.junit.After
 import org.junit.Before
@@ -216,7 +217,7 @@ class TwoPartyTradeFlowTests {
 
     // Creates a mock node with an overridden storage service that uses a RecordingMap, that lets us test the order
     // of gets and puts.
-    private fun makeNodeWithTracking(networkMapAddr: SingleMessageRecipient?, name: String, overrideServices: Map<ServiceInfo, KeyPair>? = null): MockNetwork.MockNode {
+    private fun makeNodeWithTracking(networkMapAddr: SingleMessageRecipient?, name: X500Name, overrideServices: Map<ServiceInfo, KeyPair>? = null): MockNetwork.MockNode {
         // Create a node in the mock network ...
         return net.createNode(networkMapAddr, -1, object : MockNetwork.Factory {
             override fun create(config: NodeConfiguration,

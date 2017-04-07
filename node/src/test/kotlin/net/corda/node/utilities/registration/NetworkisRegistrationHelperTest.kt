@@ -34,7 +34,7 @@ class NetworkRegistrationHelperTest {
 
         val config = TestNodeConfiguration(
                 baseDirectory = tempFolder.root.toPath(),
-                myLegalName = "me",
+                myLegalName = X509Utilities.getDevX509Name("me"),
                 networkMapService = null)
 
         assertFalse(config.keyStoreFile.exists())

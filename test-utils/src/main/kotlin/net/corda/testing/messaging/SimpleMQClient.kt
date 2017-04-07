@@ -1,6 +1,7 @@
 package net.corda.testing.messaging
 
 import com.google.common.net.HostAndPort
+import net.corda.core.crypto.X509Utilities
 import net.corda.nodeapi.ArtemisMessagingComponent
 import net.corda.nodeapi.ArtemisTcpTransport
 import net.corda.nodeapi.ConnectionDirection
@@ -12,7 +13,7 @@ import org.apache.activemq.artemis.api.core.client.*
  * As the name suggests this is a simple client for connecting to MQ brokers.
  */
 class SimpleMQClient(val target: HostAndPort,
-                     override val config: SSLConfiguration? = configureTestSSL("SimpleMQClient")) : ArtemisMessagingComponent() {
+                     override val config: SSLConfiguration? = configureTestSSL(X509Utilities.getDevX509Name("SimpleMQClient"))) : ArtemisMessagingComponent() {
     lateinit var sessionFactory: ClientSessionFactory
     lateinit var session: ClientSession
     lateinit var producer: ClientProducer

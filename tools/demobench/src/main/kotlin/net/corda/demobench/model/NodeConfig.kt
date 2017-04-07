@@ -2,6 +2,7 @@ package net.corda.demobench.model
 
 import com.typesafe.config.*
 import net.corda.nodeapi.User
+import org.bouncycastle.asn1.x500.X500Name
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -9,7 +10,7 @@ import java.nio.file.StandardCopyOption
 
 class NodeConfig(
         baseDir: Path,
-        legalName: String,
+        legalName: X500Name,
         p2pPort: Int,
         val rpcPort: Int,
         val nearestCity: String,

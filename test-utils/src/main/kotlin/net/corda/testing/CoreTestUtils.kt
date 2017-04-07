@@ -25,6 +25,7 @@ import net.corda.nodeapi.config.SSLConfiguration
 import net.corda.testing.node.MockIdentityService
 import net.corda.testing.node.MockServices
 import net.corda.testing.node.makeTestDataSourceProperties
+import org.bouncycastle.asn1.x500.X500Name
 import java.net.ServerSocket
 import java.net.URL
 import java.nio.file.Files
@@ -66,17 +67,17 @@ val ALICE_PUBKEY: PublicKey get() = ALICE_KEY.public
 val BOB_PUBKEY: PublicKey get() = BOB_KEY.public
 val CHARLIE_PUBKEY: PublicKey get() = CHARLIE_KEY.public
 
-val MEGA_CORP: Party get() = Party("MegaCorp", MEGA_CORP_PUBKEY)
-val MINI_CORP: Party get() = Party("MiniCorp", MINI_CORP_PUBKEY)
+val MEGA_CORP: Party get() = Party(X509Utilities.getDevX509Name("MegaCorp"), MEGA_CORP_PUBKEY)
+val MINI_CORP: Party get() = Party(X509Utilities.getDevX509Name("MiniCorp"), MINI_CORP_PUBKEY)
 
 val BOC_KEY: KeyPair by lazy { generateKeyPair() }
 val BOC_PUBKEY: PublicKey get() = BOC_KEY.public
-val BOC: Party get() = Party("BankOfCorda", BOC_PUBKEY)
+val BOC: Party get() = Party(X509Utilities.getDevX509Name("BankOfCorda"), BOC_PUBKEY)
 val BOC_PARTY_REF = BOC.ref(OpaqueBytes.of(1)).reference
 
 val BIG_CORP_KEY: KeyPair by lazy { generateKeyPair() }
 val BIG_CORP_PUBKEY: PublicKey get() = BIG_CORP_KEY.public
-val BIG_CORP: Party get() = Party("BigCorporation", BIG_CORP_PUBKEY)
+val BIG_CORP: Party get() = Party(X509Utilities.getDevX509Name("BigCorporation"), BIG_CORP_PUBKEY)
 val BIG_CORP_PARTY_REF = BIG_CORP.ref(OpaqueBytes.of(1)).reference
 
 val ALL_TEST_KEYS: List<KeyPair> get() = listOf(MEGA_CORP_KEY, MINI_CORP_KEY, ALICE_KEY, BOB_KEY, DUMMY_NOTARY_KEY)
@@ -154,7 +155,7 @@ inline fun <reified P : FlowLogic<*>> AbstractNode.initiateSingleShotFlow(
 // TODO Replace this with testConfiguration
 data class TestNodeConfiguration(
         override val baseDirectory: Path,
-        override val myLegalName: String,
+        override val myLegalName: X500Name,
         override val networkMapService: NetworkMapInfo?,
         override val keyStorePassword: String = "cordacadevpass",
         override val trustStorePassword: String = "trustpass",
@@ -168,7 +169,7 @@ data class TestNodeConfiguration(
         override val certificateChainCheckPolicies: List<CertChainPolicyConfig> = emptyList(),
         override val verifierType: VerifierType = VerifierType.InMemory) : NodeConfiguration
 
-fun testConfiguration(baseDirectory: Path, legalName: String, basePort: Int): FullNodeConfiguration {
+fun testConfiguration(baseDirectory: Path, legalName: X500Name, basePort: Int): FullNodeConfiguration {
     return FullNodeConfiguration(
             basedir = baseDirectory,
             myLegalName = legalName,
@@ -194,7 +195,7 @@ fun testConfiguration(baseDirectory: Path, legalName: String, basePort: Int): Fu
 }
 
 @JvmOverloads
-fun configureTestSSL(legalName: String = "Mega Corp."): SSLConfiguration = object : SSLConfiguration {
+fun configureTestSSL(legalName: X500Name = X509Utilities.getDevX509Name("Mega Corp.")): SSLConfiguration = object : SSLConfiguration {
     override val certificatesDirectory = Files.createTempDirectory("certs")
     override val keyStorePassword: String get() = "cordacadevpass"
     override val trustStorePassword: String get() = "trustpass"

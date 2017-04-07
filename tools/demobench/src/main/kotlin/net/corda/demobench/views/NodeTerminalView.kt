@@ -48,7 +48,7 @@ class NodeTerminalView : Fragment() {
     private var pty: R3Pty? = null
 
     fun open(config: NodeConfig, onExit: () -> Unit) {
-        nodeName.text = config.legalName
+        nodeName.text = config.legalName.toString()
         p2pPort.value = config.p2pPort.toString()
         launchWebButton.text = "Launch\nWeb Server\n(Port ${config.webPort})"
 

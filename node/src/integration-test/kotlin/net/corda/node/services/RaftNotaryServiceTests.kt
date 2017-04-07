@@ -6,6 +6,7 @@ import net.corda.core.contracts.StateAndRef
 import net.corda.core.contracts.StateRef
 import net.corda.core.contracts.TransactionType
 import net.corda.core.crypto.Party
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.getOrThrow
 import net.corda.core.map
 import net.corda.core.utilities.DUMMY_BANK_A
@@ -14,6 +15,7 @@ import net.corda.flows.NotaryException
 import net.corda.flows.NotaryFlow
 import net.corda.node.internal.AbstractNode
 import net.corda.node.utilities.databaseTransaction
+import net.corda.testing.ALICE
 import net.corda.testing.node.NodeBasedTest
 import org.junit.Test
 import java.security.KeyPair
@@ -22,7 +24,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class RaftNotaryServiceTests : NodeBasedTest() {
-    private val notaryName = "RAFT Notary Service"
+    private val notaryName = X509Utilities.getDevX509Name("RAFT Notary Service")
 
     @Test
     fun `detect double spend`() {

@@ -1,14 +1,15 @@
 package net.corda.contracts.universal
 
 import net.corda.core.crypto.Party
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.crypto.generateKeyPair
 import org.junit.Test
 import java.util.*
 
 // Test parties
-val acmeCorp = Party("ACME Corporation", generateKeyPair().public)
-val highStreetBank = Party("High Street Bank", generateKeyPair().public)
-val momAndPop = Party("Mom and Pop", generateKeyPair().public)
+val acmeCorp = Party(X509Utilities.getDevX509Name("ACME Corporation"), generateKeyPair().public)
+val highStreetBank = Party(X509Utilities.getDevX509Name("High Street Bank"), generateKeyPair().public)
+val momAndPop = Party(X509Utilities.getDevX509Name("Mom and Pop"), generateKeyPair().public)
 
 val acmeCorporationHasDefaulted = TerminalEvent(acmeCorp, generateKeyPair().public)
 

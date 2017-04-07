@@ -19,6 +19,7 @@ import net.corda.contracts.asset.Cash
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.GBP
 import net.corda.core.contracts.USD
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.failure
 import net.corda.core.messaging.FlowHandle
 import net.corda.core.node.services.ServiceInfo
@@ -173,10 +174,10 @@ fun main(args: Array<String>) {
         val bob = startNode(BOB.name, rpcUsers = arrayListOf(user),
                 advertisedServices = setOf(ServiceInfo(ServiceType.corda.getSubType("cash"))),
                 customOverrides = mapOf("nearestCity" to "Madrid"))
-        val issuerGBP = startNode("UK Bank Plc", rpcUsers = arrayListOf(manager),
+        val issuerGBP = startNode(X509Utilities.getDevX509Name("UK Bank Plc"), rpcUsers = arrayListOf(manager),
                 advertisedServices = setOf(ServiceInfo(ServiceType.corda.getSubType("issuer.GBP"))),
                 customOverrides = mapOf("nearestCity" to "London"))
-        val issuerUSD = startNode("USA Bank Corp", rpcUsers = arrayListOf(manager),
+        val issuerUSD = startNode(X509Utilities.getDevX509Name("USA Bank Corp"), rpcUsers = arrayListOf(manager),
                 advertisedServices = setOf(ServiceInfo(ServiceType.corda.getSubType("issuer.USD"))),
                 customOverrides = mapOf("nearestCity" to "New York"))
 
@@ -267,7 +268,7 @@ fun main(args: Array<String>) {
                 // Party pay requests.
                 eventGenerator.moveCashGenerator.combine(Generator.pickOne(parties)) { command, (party, rpc) ->
                     println("${Instant.now()} [$i] SENDING ${command.amount} from $party to ${command.recipient}")
-                    command.startFlow(rpc).log(i, party.name)
+                    command.startFlow(rpc).log(i, party.name.toString())
                 }.generate(SplittableRandom())
 
             }

@@ -2,6 +2,7 @@ package net.corda.traderdemo
 
 import com.google.common.util.concurrent.Futures
 import net.corda.client.rpc.CordaRPCClient
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.getOrThrow
 import net.corda.core.node.services.ServiceInfo
 import net.corda.core.utilities.DUMMY_BANK_A

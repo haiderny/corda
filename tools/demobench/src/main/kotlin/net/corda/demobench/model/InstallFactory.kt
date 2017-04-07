@@ -2,6 +2,8 @@ package net.corda.demobench.model
 
 import com.google.common.net.HostAndPort
 import com.typesafe.config.Config
+import org.bouncycastle.asn1.x500.X500Name
+
 import tornadofx.*
 import java.io.IOException
 import java.nio.file.Files
@@ -23,7 +25,7 @@ class InstallFactory : Controller() {
 
         val nodeConfig = NodeConfig(
                 tempDir,
-                config.getString("myLegalName"),
+                X500Name(config.getString("myLegalName")),
                 p2pPort,
                 rpcPort,
                 config.getString("nearestCity"),
@@ -35,7 +37,7 @@ class InstallFactory : Controller() {
 
         if (config.hasPath("networkMapService")) {
             val nmap = config.getConfig("networkMapService")
-            nodeConfig.networkMap = NetworkMapConfig(nmap.getString("legalName"), nmap.parsePort("address"))
+            nodeConfig.networkMap = NetworkMapConfig(X500Name(nmap.getString("legalName")), nmap.parsePort("address"))
         } else {
             log.info("Node '${nodeConfig.legalName}' is the network map")
         }

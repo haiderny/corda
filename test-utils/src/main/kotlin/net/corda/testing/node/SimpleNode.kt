@@ -3,6 +3,7 @@ package net.corda.testing.node
 import com.codahale.metrics.MetricRegistry
 import com.google.common.net.HostAndPort
 import com.google.common.util.concurrent.SettableFuture
+import net.corda.core.crypto.commonName
 import net.corda.core.crypto.generateKeyPair
 import net.corda.core.messaging.RPCOps
 import net.corda.node.services.RPCUserServiceImpl
@@ -32,7 +33,7 @@ class SimpleNode(val config: NodeConfiguration, val address: HostAndPort = freeL
     val userService = RPCUserServiceImpl(config.rpcUsers)
     val monitoringService = MonitoringService(MetricRegistry())
     val identity: KeyPair = generateKeyPair()
-    val executor = ServiceAffinityExecutor(config.myLegalName, 1)
+    val executor = ServiceAffinityExecutor(config.myLegalName.toString(), 1)
     val broker = ArtemisMessagingServer(config, address, rpcAddress, InMemoryNetworkMapCache(), userService)
     val networkMapRegistrationFuture: SettableFuture<Unit> = SettableFuture.create<Unit>()
     val net = databaseTransaction(database) {
@@ -54,7 +55,7 @@ class SimpleNode(val config: NodeConfiguration, val address: HostAndPort = freeL
                     override val protocolVersion = 0
                 },
                 userService)
-        thread(name = config.myLegalName) {
+        thread(name = config.myLegalName.commonName) {
             net.run()
         }
     }

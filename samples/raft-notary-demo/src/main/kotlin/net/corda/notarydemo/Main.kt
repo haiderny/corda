@@ -1,5 +1,6 @@
 package net.corda.notarydemo
 
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.div
 import net.corda.core.utilities.ALICE
 import net.corda.core.utilities.BOB

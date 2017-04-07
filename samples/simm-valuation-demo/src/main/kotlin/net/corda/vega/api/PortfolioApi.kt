@@ -19,6 +19,7 @@ import net.corda.vega.flows.SimmRevaluation
 import net.corda.vega.portfolio.Portfolio
 import net.corda.vega.portfolio.toPortfolio
 import net.corda.vega.portfolio.toStateAndRef
+import org.bouncycastle.asn1.x500.X500Name
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -237,7 +238,7 @@ class PortfolioApi(val rpc: CordaRPCOps) {
         }
     }
 
-    data class ApiParty(val id: String, val text: String)
+    data class ApiParty(val id: String, val text: X500Name)
     data class AvailableParties(val self: ApiParty, val counterparties: List<ApiParty>)
 
     /**
@@ -247,6 +248,8 @@ class PortfolioApi(val rpc: CordaRPCOps) {
     @Path("whoami")
     @Produces(MediaType.APPLICATION_JSON)
     fun getWhoAmI(): AvailableParties {
+        val networkMapServiceName = X509Utilities.getDevX509Name("NetworkMapService")
+        val notaryName = X509Utilities.getDevX509Name("Notary")
         val counterParties = rpc.networkMapUpdates().first.filter {
             it.legalIdentity.name != DUMMY_MAP.name
                     && it.legalIdentity.name != DUMMY_NOTARY.name

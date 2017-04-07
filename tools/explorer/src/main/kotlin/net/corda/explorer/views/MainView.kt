@@ -49,7 +49,7 @@ class MainView : View() {
 
     init {
         // Header
-        userButton.textProperty().bind(myIdentity.map { it?.legalIdentity?.name })
+        userButton.textProperty().bind(myIdentity.map { it?.legalIdentity?.name.toString() })
         exit.setOnAction {
             (root.scene.window as Stage).fireEvent(WindowEvent(root.scene.window, WindowEvent.WINDOW_CLOSE_REQUEST))
         }

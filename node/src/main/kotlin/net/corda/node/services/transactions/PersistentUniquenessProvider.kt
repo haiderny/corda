@@ -9,6 +9,7 @@ import net.corda.core.node.services.UniquenessProvider
 import net.corda.core.serialization.SingletonSerializeAsToken
 import net.corda.core.utilities.loggerFor
 import net.corda.node.utilities.*
+import org.bouncycastle.asn1.x500.X500Name
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.statements.InsertStatement
 import java.util.*
@@ -38,7 +39,7 @@ class PersistentUniquenessProvider : UniquenessProvider, SingletonSerializeAsTok
         override fun valueFromRow(row: ResultRow): UniquenessProvider.ConsumingTx = UniquenessProvider.ConsumingTx(
                 row[table.consumingTxHash],
                 row[table.consumingIndex],
-                Party(row[table.requestingParty.name], row[table.requestingParty.owningKey])
+                Party(X500Name(row[table.requestingParty.name]), row[table.requestingParty.owningKey])
         )
 
         override fun addKeyToInsert(insert: InsertStatement,
@@ -53,7 +54,7 @@ class PersistentUniquenessProvider : UniquenessProvider, SingletonSerializeAsTok
                                       finalizables: MutableList<() -> Unit>) {
             insert[table.consumingTxHash] = entry.value.id
             insert[table.consumingIndex] = entry.value.inputIndex
-            insert[table.requestingParty.name] = entry.value.requestingParty.name
+            insert[table.requestingParty.name] = entry.value.requestingParty.name.toString()
             insert[table.requestingParty.owningKey] = entry.value.requestingParty.owningKey
         }
     })

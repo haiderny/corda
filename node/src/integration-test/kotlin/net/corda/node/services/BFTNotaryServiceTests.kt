@@ -5,6 +5,8 @@ import net.corda.core.contracts.StateAndRef
 import net.corda.core.contracts.StateRef
 import net.corda.core.contracts.TransactionType
 import net.corda.core.crypto.Party
+import net.corda.core.crypto.X509Utilities
+import net.corda.core.crypto.commonName
 import net.corda.core.div
 import net.corda.core.getOrThrow
 import net.corda.core.node.services.ServiceInfo
@@ -19,6 +21,7 @@ import net.corda.node.services.transactions.BFTNonValidatingNotaryService
 import net.corda.node.utilities.ServiceIdentityGenerator
 import net.corda.node.utilities.databaseTransaction
 import net.corda.testing.node.NodeBasedTest
+import org.bouncycastle.asn1.x500.X500Name
 import org.junit.Test
 import java.security.KeyPair
 import java.util.*
@@ -26,7 +29,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class BFTNotaryServiceTests : NodeBasedTest() {
-    private val notaryName = "BFT Notary Server"
+    private val notaryName = X509Utilities.getDevX509Name("BFT Notary Server")
 
     @Test
     fun `detect double spend`() {
@@ -71,7 +74,7 @@ class BFTNotaryServiceTests : NodeBasedTest() {
         }
     }
 
-    private fun startBFTNotaryCluster(notaryName: String,
+    private fun startBFTNotaryCluster(notaryName: X500Name,
                                       clusterSize: Int,
                                       serviceType: ServiceType): List<Node> {
         val quorum = (2 * clusterSize + 1) / 3
@@ -83,14 +86,14 @@ class BFTNotaryServiceTests : NodeBasedTest() {
 
         val serviceInfo = ServiceInfo(serviceType, notaryName)
         val masterNode = startNode(
-                "$notaryName-0",
+                X509Utilities.getDevX509Name("${notaryName.commonName}-0"),
                 advertisedServices = setOf(serviceInfo),
                 configOverrides = mapOf("notaryNodeId" to 0)
         ).getOrThrow()
 
         val remainingNodes = (1 until clusterSize).map {
             startNode(
-                    "$notaryName-$it",
+                    X509Utilities.getDevX509Name("${notaryName.commonName}-$it"),
                     advertisedServices = setOf(serviceInfo),
                     configOverrides = mapOf("notaryNodeId" to it)
             ).getOrThrow()

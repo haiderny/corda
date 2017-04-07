@@ -3,6 +3,7 @@ package net.corda.testing.node
 import co.paralleluniverse.common.util.VisibleForTesting
 import net.corda.core.crypto.DummyPublicKey
 import net.corda.core.crypto.Party
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.messaging.SingleMessageRecipient
 import net.corda.core.node.NodeInfo
 import net.corda.core.node.services.NetworkMapCache
@@ -20,8 +21,8 @@ class MockNetworkMapCache : InMemoryNetworkMapCache() {
     data class MockAddress(val id: String) : SingleMessageRecipient
 
     init {
-        val mockNodeA = NodeInfo(MockAddress("bankC:8080"), Party("Bank C", DummyPublicKey("Bank C")), MOCK_VERSION)
-        val mockNodeB = NodeInfo(MockAddress("bankD:8080"), Party("Bank D", DummyPublicKey("Bank D")), MOCK_VERSION)
+        val mockNodeA = NodeInfo(MockAddress("bankC:8080"), Party(X509Utilities.getDevX509Name("Bank C"), DummyPublicKey("Bank C")), MOCK_VERSION)
+        val mockNodeB = NodeInfo(MockAddress("bankD:8080"), Party(X509Utilities.getDevX509Name("Bank D"), DummyPublicKey("Bank D")), MOCK_VERSION)
         registeredNodes[mockNodeA.legalIdentity.owningKey] = mockNodeA
         registeredNodes[mockNodeB.legalIdentity.owningKey] = mockNodeB
         runWithoutMapService()

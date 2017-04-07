@@ -22,6 +22,7 @@ import net.corda.core.contracts.sumOrNull
 import net.corda.core.contracts.withoutIssuer
 import net.corda.core.crypto.AbstractParty
 import net.corda.core.crypto.Party
+import net.corda.core.crypto.commonName
 import net.corda.core.flows.FlowException
 import net.corda.core.getOrThrow
 import net.corda.core.messaging.startFlow
@@ -167,7 +168,7 @@ class NewTransaction : Fragment() {
 
         // Party A textfield always display my identity name, not editable.
         partyATextField.isEditable = false
-        partyATextField.textProperty().bind(myIdentity.map { it?.legalIdentity?.name ?: "" })
+        partyATextField.textProperty().bind(myIdentity.map { it?.legalIdentity?.name?.commonName ?: "" })
         partyALabel.textProperty().bind(transactionTypeCB.valueProperty().map { it?.partyNameA?.let { "$it : " } })
         partyATextField.visibleProperty().bind(transactionTypeCB.valueProperty().map { it?.partyNameA }.isNotNull())
 
@@ -176,17 +177,17 @@ class NewTransaction : Fragment() {
         partyBChoiceBox.apply {
             visibleProperty().bind(transactionTypeCB.valueProperty().map { it?.partyNameB }.isNotNull())
             items = parties.sorted()
-            converter = stringConverter { it?.legalIdentity?.name ?: "" }
+            converter = stringConverter { it?.legalIdentity?.name?.commonName ?: "" }
         }
         // Issuer
         issuerLabel.visibleProperty().bind(transactionTypeCB.valueProperty().isNotNull)
         issuerChoiceBox.apply {
             items = issuers.map { it.legalIdentity }.unique().sorted()
-            converter = stringConverter { it.name }
+            converter = stringConverter { it.name.commonName }
             visibleProperty().bind(transactionTypeCB.valueProperty().map { it == CashTransaction.Pay })
         }
         issuerTextField.apply {
-            textProperty().bind(myIdentity.map { it?.legalIdentity?.name })
+            textProperty().bind(myIdentity.map { it?.legalIdentity?.name?.commonName })
             visibleProperty().bind(transactionTypeCB.valueProperty().map { it == CashTransaction.Issue || it == CashTransaction.Exit })
             isEditable = false
         }

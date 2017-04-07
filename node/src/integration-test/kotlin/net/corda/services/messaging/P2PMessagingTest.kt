@@ -3,6 +3,8 @@ package net.corda.services.messaging
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import net.corda.core.*
+import net.corda.core.crypto.X509Utilities
+import net.corda.core.crypto.commonName
 import net.corda.core.messaging.MessageRecipients
 import net.corda.core.messaging.SingleMessageRecipient
 import net.corda.core.messaging.createMessage
@@ -21,6 +23,7 @@ import net.corda.node.utilities.ServiceIdentityGenerator
 import net.corda.testing.freeLocalHostAndPort
 import net.corda.testing.node.NodeBasedTest
 import org.assertj.core.api.Assertions.assertThat
+import org.bouncycastle.asn1.x500.X500Name
 import org.junit.Test
 import java.util.*
 
@@ -53,11 +56,11 @@ class P2PMessagingTest : NodeBasedTest() {
     // TODO Use a dummy distributed service
     @Test
     fun `communicating with a distributed service which the network map node is part of`() {
-        val serviceName = "DistributedService"
+        val serviceName = X509Utilities.getDevX509Name("DistributedService")
 
         val root = tempFolder.root.toPath()
         ServiceIdentityGenerator.generateToDisk(
-                listOf(root / DUMMY_MAP.name, root / "Service Node 2"),
+                listOf(root / DUMMY_MAP.name.commonName, root / "Service Node 2"),
                 RaftValidatingNotaryService.type.id,
                 serviceName)
 
@@ -69,7 +72,7 @@ class P2PMessagingTest : NodeBasedTest() {
                 configOverrides = mapOf("notaryNodeAddress" to notaryClusterAddress.toString()))
         val (serviceNode2, alice) = Futures.allAsList(
                 startNode(
-                        "Service Node 2",
+                        X509Utilities.getDevX509Name("Service Node 2"),
                         advertisedServices = setOf(distributedService),
                         configOverrides = mapOf(
                                 "notaryNodeAddress" to freeLocalHostAndPort().toString(),
@@ -82,12 +85,12 @@ class P2PMessagingTest : NodeBasedTest() {
 
     @Test
     fun `communicating with a distributed service which we're part of`() {
-        val serviceName = "Distributed Service"
+        val serviceName = X509Utilities.getDevX509Name("Distributed Service")
         val distributedService = startNotaryCluster(serviceName, 2).getOrThrow()
         assertAllNodesAreUsed(distributedService, serviceName, distributedService[0])
     }
 
-    private fun assertAllNodesAreUsed(participatingServiceNodes: List<Node>, serviceName: String, originatingNode: Node) {
+    private fun assertAllNodesAreUsed(participatingServiceNodes: List<Node>, serviceName: X500Name, originatingNode: Node) {
         // Setup each node in the distributed service to return back it's NodeInfo so that we can know which node is being used
         participatingServiceNodes.forEach { node ->
             node.respondWith(node.info)

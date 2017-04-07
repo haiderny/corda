@@ -2,7 +2,6 @@ package net.corda.core.testing
 
 import com.pholser.junit.quickcheck.generator.GenerationStatus
 import com.pholser.junit.quickcheck.generator.Generator
-import com.pholser.junit.quickcheck.generator.java.lang.StringGenerator
 import com.pholser.junit.quickcheck.generator.java.util.ArrayListGenerator
 import com.pholser.junit.quickcheck.random.SourceOfRandomness
 import net.corda.core.contracts.*
@@ -51,7 +50,7 @@ class AnonymousPartyGenerator : Generator<AnonymousParty>(AnonymousParty::class.
 
 class PartyGenerator : Generator<Party>(Party::class.java) {
     override fun generate(random: SourceOfRandomness, status: GenerationStatus): Party {
-        return Party(StringGenerator().generate(random, status), PublicKeyGenerator().generate(random, status))
+        return Party(X500NameGenerator().generate(random, status), PublicKeyGenerator().generate(random, status))
     }
 }
 

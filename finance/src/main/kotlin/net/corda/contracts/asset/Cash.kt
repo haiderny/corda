@@ -16,6 +16,7 @@ import net.corda.core.serialization.CordaSerializable
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.Emoji
 import net.corda.schemas.CashSchemaV1
+import org.bouncycastle.asn1.x500.X500Name
 import java.math.BigInteger
 import java.security.PublicKey
 import java.util.*
@@ -210,7 +211,7 @@ infix fun Cash.State.`with deposit`(deposit: PartyAndReference): Cash.State = wi
 /** A randomly generated key. */
 val DUMMY_CASH_ISSUER_KEY by lazy { entropyToKeyPair(BigInteger.valueOf(10)) }
 /** A dummy, randomly generated issuer party by the name of "Snake Oil Issuer" */
-val DUMMY_CASH_ISSUER by lazy { Party("Snake Oil Issuer", DUMMY_CASH_ISSUER_KEY.public).ref(1) }
+val DUMMY_CASH_ISSUER by lazy { Party(X509Utilities.getDevX509Name("Snake Oil Issuer"), DUMMY_CASH_ISSUER_KEY.public).ref(1) }
 /** An extension property that lets you write 100.DOLLARS.CASH */
 val Amount<Currency>.CASH: Cash.State get() = Cash.State(Amount(quantity, Issued(DUMMY_CASH_ISSUER, token)), NullPublicKey)
 /** An extension property that lets you get a cash state from an issued token, under the [NullPublicKey] */

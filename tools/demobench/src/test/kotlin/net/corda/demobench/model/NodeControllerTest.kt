@@ -1,7 +1,9 @@
 package net.corda.demobench.model
 
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.utilities.DUMMY_NOTARY
 import net.corda.nodeapi.User
+import org.bouncycastle.asn1.x500.X500Name
 import org.junit.Test
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -57,14 +59,14 @@ class NodeControllerTest {
 
     @Test
     fun `test register unique nodes`() {
-        val config = createConfig(legalName = "Node 2")
+        val config = createConfig(legalName = X509Utilities.getDevX509Name("Node 2"))
         assertTrue(controller.register(config))
         assertFalse(controller.register(config))
     }
 
     @Test
     fun `test unique key after register`() {
-        val config = createConfig(legalName = "Node 2")
+        val config = createConfig(legalName = X509Utilities.getDevX509Name("Node 2"))
 
         assertFalse(controller.keyExists("node2"))
         controller.register(config)
@@ -73,7 +75,7 @@ class NodeControllerTest {
 
     @Test
     fun `test matching name after register`() {
-        val config = createConfig(legalName = "Node 2")
+        val config = createConfig(legalName = X509Utilities.getDevX509Name("Node 2"))
 
         assertFalse(controller.nameExists("Node 2"))
         assertFalse(controller.nameExists("Node2"))
@@ -86,7 +88,7 @@ class NodeControllerTest {
 
     @Test
     fun `test register network map node`() {
-        val config = createConfig(legalName = "Node is Network Map")
+        val config = createConfig(legalName = X509Utilities.getDevX509Name("Node is Network Map"))
         assertTrue(config.isNetworkMap())
 
         assertFalse(controller.hasNetworkMap())
@@ -96,7 +98,7 @@ class NodeControllerTest {
 
     @Test
     fun `test register non-network-map node`() {
-        val config = createConfig(legalName = "Node is not Network Map")
+        val config = createConfig(legalName = X509Utilities.getDevX509Name("Node is not Network Map"))
         config.networkMap = NetworkMapConfig(DUMMY_NOTARY.name, 10000)
         assertFalse(config.isNetworkMap())
 
@@ -151,7 +153,7 @@ class NodeControllerTest {
 
     @Test
     fun `dispose node`() {
-        val config = createConfig(legalName = "MyName")
+        val config = createConfig(legalName = X509Utilities.getDevX509Name("MyName"))
         controller.register(config)
 
         assertEquals(NodeState.STARTING, config.state)
@@ -162,7 +164,7 @@ class NodeControllerTest {
     }
 
     private fun createConfig(
-            legalName: String = "Unknown",
+            legalName: X500Name = X509Utilities.getDevX509Name("Unknown"),
             nearestCity: String = "Nowhere",
             p2pPort: Int = -1,
             rpcPort: Int = -1,

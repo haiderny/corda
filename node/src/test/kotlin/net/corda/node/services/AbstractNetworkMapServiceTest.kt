@@ -1,6 +1,7 @@
 package net.corda.node.services
 
 import com.google.common.util.concurrent.ListenableFuture
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.getOrThrow
 import net.corda.core.messaging.SingleMessageRecipient
 import net.corda.core.messaging.send
@@ -24,12 +25,14 @@ import net.corda.node.services.network.NetworkMapService.Companion.SUBSCRIPTION_
 import net.corda.node.services.network.NodeRegistration
 import net.corda.core.utilities.ALICE
 import net.corda.core.utilities.BOB
+import net.corda.core.utilities.DUMMY_MAP
 import net.corda.node.utilities.AddOrRemove
 import net.corda.node.utilities.AddOrRemove.ADD
 import net.corda.node.utilities.AddOrRemove.REMOVE
 import net.corda.testing.node.MockNetwork
 import net.corda.testing.node.MockNetwork.MockNode
 import org.assertj.core.api.Assertions.assertThat
+import org.bouncycastle.asn1.x500.X500Name
 import org.eclipse.jetty.util.BlockingArrayQueue
 import org.junit.After
 import org.junit.Before
@@ -43,10 +46,14 @@ abstract class AbstractNetworkMapServiceTest<out S : AbstractNetworkMapService> 
     lateinit var mapServiceNode: MockNode
     lateinit var alice: MockNode
 
+    companion object {
+        val subscriberLegalName = X509Utilities.getDevX509Name("Subscriber")
+    }
+
     @Before
     fun setup() {
         network = MockNetwork(defaultFactory = nodeFactory)
-        network.createTwoNodes(firstNodeName = "map service", secondNodeName = ALICE.name).apply {
+        network.createTwoNodes(firstNodeName = DUMMY_MAP.name, secondNodeName = ALICE.name).apply {
             mapServiceNode = first
             alice = second
         }
@@ -144,14 +151,14 @@ abstract class AbstractNetworkMapServiceTest<out S : AbstractNetworkMapService> 
         val updates = alice.subscribe()
         val bob = addNewNodeToNetworkMap(BOB.name)
         alice.unsubscribe()
-        addNewNodeToNetworkMap("Charlie")
+        addNewNodeToNetworkMap(X509Utilities.getDevX509Name("Charlie"))
         swizzle()
         assertThat(updates.map { it.wireReg.verified().toChanged() }).containsOnly(Added(bob.info))
     }
 
     @Test
     fun `surpass unacknowledged update limit`() {
-        val subscriber = newNodeSeparateFromNetworkMap("Subscriber")
+        val subscriber = newNodeSeparateFromNetworkMap(subscriberLegalName)
         val updates = subscriber.subscribe()
         val bob = addNewNodeToNetworkMap(BOB.name)
         var serial = updates.first().wireReg.verified().serial
@@ -165,7 +172,7 @@ abstract class AbstractNetworkMapServiceTest<out S : AbstractNetworkMapService> 
 
     @Test
     fun `delay sending update ack until just before unacknowledged update limit`() {
-        val subscriber = newNodeSeparateFromNetworkMap("Subscriber")
+        val subscriber = newNodeSeparateFromNetworkMap(subscriberLegalName)
         val updates = subscriber.subscribe()
         val bob = addNewNodeToNetworkMap(BOB.name)
         var serial = updates.first().wireReg.verified().serial
@@ -243,14 +250,14 @@ abstract class AbstractNetworkMapServiceTest<out S : AbstractNetworkMapService> 
         network.runNetwork()
     }
 
-    private fun addNewNodeToNetworkMap(legalName: String): MockNode {
+    private fun addNewNodeToNetworkMap(legalName: X500Name): MockNode {
         val node = network.createNode(networkMapAddress = mapServiceNode.info.address, legalName = legalName)
         network.runNetwork()
         lastSerial = System.currentTimeMillis()
         return node
     }
 
-    private fun newNodeSeparateFromNetworkMap(legalName: String): MockNode {
+    private fun newNodeSeparateFromNetworkMap(legalName: X500Name): MockNode {
         return network.createNode(legalName = legalName, nodeFactory = NoNMSNodeFactory)
     }
 

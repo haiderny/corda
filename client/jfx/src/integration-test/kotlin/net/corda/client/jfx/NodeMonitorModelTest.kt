@@ -50,7 +50,7 @@ class NodeMonitorModelTest : DriverBasedTest() {
     lateinit var transactions: Observable<SignedTransaction>
     lateinit var vaultUpdates: Observable<Vault.Update>
     lateinit var networkMapUpdates: Observable<NetworkMapCache.MapChange>
-    lateinit var newNode: (String) -> NodeInfo
+    lateinit var newNode: (X500Name) -> NodeInfo
 
     override fun setup() = driver {
         val cashUser = User("user1", "test", permissions = setOf(

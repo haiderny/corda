@@ -4,6 +4,7 @@ import com.google.common.net.HostAndPort
 import joptsimple.OptionParser
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.contracts.DOLLARS
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.utilities.loggerFor
 import org.slf4j.Logger
 import kotlin.system.exitProcess
@@ -48,7 +49,7 @@ private class TraderDemo {
         } else {
             val host = HostAndPort.fromString("localhost:10009")
             CordaRPCClient(host).use("demo", "demo") {
-                TraderDemoClientApi(this).runSeller(1000.DOLLARS, "Bank A")
+                TraderDemoClientApi(this).runSeller(1000.DOLLARS, X509Utilities.getDevX509Name("Bank A"))
             }
         }
     }

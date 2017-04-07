@@ -3,6 +3,7 @@ package net.corda.docs
 import net.corda.contracts.asset.Cash
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.USD
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.messaging.startFlow
 import net.corda.core.node.CordaPluginRegistry
@@ -46,8 +47,8 @@ fun main(args: Array<String>) {
             startFlowPermission<CashExitFlow>()))
 
     driver(driverDirectory = baseDirectory) {
-        startNode("Notary", advertisedServices = setOf(ServiceInfo(ValidatingNotaryService.type)))
-        val node = startNode("Alice", rpcUsers = listOf(user)).get()
+        startNode(X509Utilities.getDevX509Name("Notary"), advertisedServices = setOf(ServiceInfo(ValidatingNotaryService.type)))
+        val node = startNode(X509Utilities.getDevX509Name("Alice"), rpcUsers = listOf(user)).get()
         // END 1
 
         // START 2

@@ -116,7 +116,7 @@ class NodeTabView : Fragment() {
         root.add(nodeConfigView)
         root.add(nodeTerminalView)
 
-        model.legalName.value = if (nodeController.hasNetworkMap()) "" else DUMMY_NOTARY.name
+        model.legalName.value = if (nodeController.hasNetworkMap()) "" else DUMMY_NOTARY.name.toString()
         model.p2pPort.value = nodeController.nextPort
         model.rpcPort.value = nodeController.nextPort
         model.webPort.value = nodeController.nextPort
@@ -278,7 +278,7 @@ class NodeTabView : Fragment() {
     }
 
     private fun launchNode(config: NodeConfig) {
-        nodeTab.text = config.legalName
+        nodeTab.text = config.legalName.toString()
         nodeTerminalView.open(config, onExit = { onTerminalExit(config) })
 
         nodeTab.setOnSelectionChanged {

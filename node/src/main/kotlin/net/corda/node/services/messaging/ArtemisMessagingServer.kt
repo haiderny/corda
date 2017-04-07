@@ -238,7 +238,7 @@ class ArtemisMessagingServer(override val config: NodeConfiguration,
                 .loadCertificateFromKeyStore(config.keyStoreFile, config.keyStorePassword, CORDA_CLIENT_CA)
         val ourSubjectDN = X500Name(ourCertificate.subjectDN.name)
         // This is a sanity check and should not fail unless things have been misconfigured
-        require(ourSubjectDN.commonName == config.myLegalName) {
+        require(ourSubjectDN == config.myLegalName) {
             "Legal name does not match with our subject CN: $ourSubjectDN"
         }
         val defaultCertPolicies = mapOf(
@@ -346,7 +346,7 @@ class ArtemisMessagingServer(override val config: NodeConfiguration,
         }
     }
 
-    private fun deployBridge(address: ArtemisPeerAddress, legalName: String) {
+    private fun deployBridge(address: ArtemisPeerAddress, legalName: X500Name) {
         deployBridge(address.queueName, address.hostAndPort, legalName)
     }
 
@@ -359,7 +359,7 @@ class ArtemisMessagingServer(override val config: NodeConfiguration,
      * as defined by ArtemisAddress.queueName. A bridge is then created to forward messages from this queue to the node's
      * P2P address.
      */
-    private fun deployBridge(queueName: String, target: HostAndPort, legalName: String) {
+    private fun deployBridge(queueName: String, target: HostAndPort, legalName: X500Name) {
         val connectionDirection = ConnectionDirection.Outbound(
                 connectorFactoryClassName = VerifyingNettyConnectorFactory::class.java.name,
                 expectedCommonName = legalName
@@ -398,7 +398,7 @@ class ArtemisMessagingServer(override val config: NodeConfiguration,
     private fun getBridgeName(queueName: String, hostAndPort: HostAndPort): String = "$queueName -> $hostAndPort"
 
     // This is called on one of Artemis' background threads
-    internal fun hostVerificationFail(peerLegalName: String, expectedCommonName: String) {
+    internal fun hostVerificationFail(peerLegalName: X500Name, expectedCommonName: X500Name) {
         log.error("Peer has wrong CN - expected $expectedCommonName but got $peerLegalName. This is either a fatal " +
                 "misconfiguration by the remote peer or an SSL man-in-the-middle attack!")
         if (expectedCommonName == config.networkMapService?.legalName) {
@@ -408,7 +408,7 @@ class ArtemisMessagingServer(override val config: NodeConfiguration,
     }
 
     // This is called on one of Artemis' background threads
-    internal fun onTcpConnection(peerLegalName: String) {
+    internal fun onTcpConnection(peerLegalName: X500Name) {
         if (peerLegalName == config.networkMapService?.legalName) {
             _networkMapConnectionFuture!!.set(Unit)
         }
@@ -437,12 +437,14 @@ private class VerifyingNettyConnector(configuration: MutableMap<String, Any>?,
                                       protocolManager: ClientProtocolManager?) :
         NettyConnector(configuration, handler, listener, closeExecutor, threadPool, scheduledThreadPool, protocolManager) {
     private val server = configuration?.get(ArtemisMessagingServer::class.java.name) as? ArtemisMessagingServer
-    private val expectedCommonName = configuration?.get(ArtemisTcpTransport.VERIFY_PEER_COMMON_NAME) as? String
+    private val expectedCommonName: X500Name? = configuration?.get(ArtemisTcpTransport.VERIFY_PEER_COMMON_NAME)?.let { it ->
+        X500Name(it as String)
+    }
 
     override fun createConnection(): Connection? {
         val connection = super.createConnection() as NettyConnection?
         if (connection != null && expectedCommonName != null) {
-            val peerLegalName = connection
+            val peerLegalName: X500Name = connection
                     .channel
                     .pipeline()
                     .get(SslHandler::class.java)
@@ -451,7 +453,6 @@ private class VerifyingNettyConnector(configuration: MutableMap<String, Any>?,
                     .peerPrincipal
                     .name
                     .let(::X500Name)
-                    .commonName
             // TODO Verify on the entire principle (subject)
             if (peerLegalName != expectedCommonName) {
                 connection.close()

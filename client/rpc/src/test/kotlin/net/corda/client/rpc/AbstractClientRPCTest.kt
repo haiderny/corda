@@ -1,5 +1,6 @@
 package net.corda.client.rpc
 
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.messaging.RPCOps
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.utilities.LogHelper
@@ -73,7 +74,7 @@ abstract class AbstractClientRPCTest {
             override val users: List<User> get() = listOf(rpcUser)
         }
 
-        val dispatcher = object : RPCDispatcher(rpcImpl, userService, "SomeName") {
+        val dispatcher = object : RPCDispatcher(rpcImpl, userService, X509Utilities.getDevX509Name("SomeName")) {
             override fun send(data: SerializedBytes<*>, toAddress: String) {
                 val msg = serverSession.createMessage(false).apply {
                     writeBodyBufferBytes(data.bytes)
