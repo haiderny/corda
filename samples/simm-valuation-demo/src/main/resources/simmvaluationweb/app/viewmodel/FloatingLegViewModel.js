@@ -1,7 +1,7 @@
 "use strict";
 var FloatingLegViewModel = (function () {
     function FloatingLegViewModel() {
-        this.floatingRatePayer = "Bank B";
+        this.floatingRatePayer = "CN=Bank B,O=R3,OU=corda,L=New York,C=USA";
         this.notional = {
             quantity: 2500000000
         };
