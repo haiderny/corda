@@ -3,9 +3,12 @@ package net.corda.services.messaging
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import net.corda.core.*
+import net.corda.core.crypto.X509Utilities
+import net.corda.core.crypto.commonName
 import net.corda.core.messaging.MessageRecipients
 import net.corda.core.messaging.SingleMessageRecipient
 import net.corda.core.messaging.createMessage
+import net.corda.core.node.NodeInfo
 import net.corda.core.node.services.DEFAULT_SESSION_ID
 import net.corda.core.node.services.ServiceInfo
 import net.corda.core.serialization.CordaSerializable
@@ -21,6 +24,7 @@ import net.corda.node.utilities.ServiceIdentityGenerator
 import net.corda.testing.freeLocalHostAndPort
 import net.corda.testing.node.NodeBasedTest
 import org.assertj.core.api.Assertions.assertThat
+import org.bouncycastle.asn1.x500.X500Name
 import org.junit.Test
 import java.util.*
 
@@ -53,7 +57,7 @@ class P2PMessagingTest : NodeBasedTest() {
     // TODO Use a dummy distributed service
     @Test
     fun `communicating with a distributed service which the network map node is part of`() {
-        val serviceName = "DistributedService"
+        val serviceName = "CN=DistributedService,O=R3,OU=corda,L=London,C=UK"
 
         val root = tempFolder.root.toPath()
         ServiceIdentityGenerator.generateToDisk(
@@ -69,7 +73,7 @@ class P2PMessagingTest : NodeBasedTest() {
                 configOverrides = mapOf("notaryNodeAddress" to notaryClusterAddress.toString()))
         val (serviceNode2, alice) = Futures.allAsList(
                 startNode(
-                        "Service Node 2",
+                        "CN=Service Node 2,O=R3,OU=corda,L=London,C=UK",
                         advertisedServices = setOf(distributedService),
                         configOverrides = mapOf(
                                 "notaryNodeAddress" to freeLocalHostAndPort().toString(),
@@ -82,7 +86,7 @@ class P2PMessagingTest : NodeBasedTest() {
 
     @Test
     fun `communicating with a distributed service which we're part of`() {
-        val serviceName = "Distributed Service"
+        val serviceName = "CN=Distributed Service,O=R3,OU=corda,L=London,C=UK"
         val distributedService = startNotaryCluster(serviceName, 2).getOrThrow()
         assertAllNodesAreUsed(distributedService, serviceName, distributedService[0])
     }
@@ -95,12 +99,13 @@ class P2PMessagingTest : NodeBasedTest() {
         val serviceAddress = originatingNode.services.networkMapCache.run {
             originatingNode.net.getAddressOfParty(getPartyInfo(getNotary(serviceName)!!)!!)
         }
-        val participatingNodes = HashSet<Any>()
+        val participatingNodes = HashSet<NodeInfo>()
         // Try several times so that we can be fairly sure that any node not participating is not due to Artemis' selection
         // strategy. 3 attempts for each node seems to be sufficient.
         // This is not testing the distribution of the requests - DistributedServiceTests already does that
         for (it in 1..participatingServiceNodes.size * 3) {
-            participatingNodes += originatingNode.receiveFrom(serviceAddress).getOrThrow(10.seconds)
+            val nodeInfo = originatingNode.receiveFrom(serviceAddress).getOrThrow(10.seconds) as NodeInfo
+            participatingNodes += nodeInfo
             if (participatingNodes.size == participatingServiceNodes.size) {
                 break
             }

@@ -1,7 +1,10 @@
 package net.corda.node.services
 
+import net.corda.core.crypto.X509Utilities
 import net.corda.core.getOrThrow
 import net.corda.core.node.services.ServiceInfo
+import net.corda.core.utilities.ALICE
+import net.corda.core.utilities.BOB
 import net.corda.node.services.network.NetworkMapService
 import net.corda.node.utilities.databaseTransaction
 import net.corda.testing.node.MockNetwork
@@ -23,8 +26,8 @@ class InMemoryNetworkMapCacheTest {
     @Test
     fun `key collision`() {
         val entropy = BigInteger.valueOf(24012017L)
-        val nodeA = network.createNode(null, -1, MockNetwork.DefaultFactory, true, "Node A", null, entropy, ServiceInfo(NetworkMapService.type))
-        val nodeB = network.createNode(null, -1, MockNetwork.DefaultFactory, true, "Node B", null, entropy, ServiceInfo(NetworkMapService.type))
+        val nodeA = network.createNode(null, -1, MockNetwork.DefaultFactory, true, ALICE.name, null, entropy, ServiceInfo(NetworkMapService.type))
+        val nodeB = network.createNode(null, -1, MockNetwork.DefaultFactory, true, BOB.name, null, entropy, ServiceInfo(NetworkMapService.type))
         assertEquals(nodeA.info.legalIdentity, nodeB.info.legalIdentity)
 
         // Node A currently knows only about itself, so this returns node A
